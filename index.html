@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DiarIA | Inteligencia diaria para tu vida</title>
+<meta name="description" content="Guías, clima, noticias, cotizaciones y productos recomendados con IA.">
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DiarIA">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="/img/icon-192.png">
+<style>
+  :root {
+    --naranja: #ff9900;
+    --naranja-oscuro: #e68a00;
+    --violeta: #7c3aed;
+    --cyan: #06b6d4;
+    --rosa: #ec4899;
+    --gris-claro: #f7f8fa;
+    --gris-medio: #e5e7eb;
+    --texto: #1a1a1a;
+    --texto-suave: #6b7280;
+    --oscuro: #080030;
+    --sombra: 0 4px 20px rgba(0,0,0,0.08);
+    --sombra-hover: 0 12px 32px rgba(0,0,0,0.14);
+    --radio: 16px;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--gris-claro);
+    color: var(--texto);
+    line-height: 1.7;
+    padding-top: 38px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  a, button, input, [onclick] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ============ BARRA COTIZACIONES ============ */
+  .scrolling-bar {
+    position: fixed; top: 0; left: 0; width: 100%;
+    background: linear-gradient(90deg, #080030 0%, #150060 50%, #080030 100%);
+    background-size: 200% 100%;
+    animation: barGradient 8s ease infinite;
+    color: white; padding: 8px 0; overflow: hidden; white-space: nowrap;
+    z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+    font-size: 13px; font-weight: 600;
+  }
+  @keyframes barGradient {
+    0%, 100% { background-position: 0% 0; }
+    50% { background-position: 100% 0; }
+  }
+  .scrolling-bar .data-content {
+    display: inline-block;
+    animation: scroll-left 60s linear infinite;
+    padding-left: 100%;
+  }
+  .scrolling-bar:hover .data-content { animation-play-state: paused; }
+  .scrolling-bar .data-item { display: inline-block; margin-right: 50px; }
+  @keyframes scroll-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* ============ BARRA DE PROGRESO DE SCROLL ============ */
+  .scroll-progress {
+    position: fixed !important;
+    top: 37px !important;
+    left: 0 !important;
+    width: 0%;
+    height: 4px;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja));
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+    z-index: 9999 !important;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.8), 0 0 4px rgba(236, 72, 153, 0.5);
+    transition: width 0.15s ease-out;
+    border-radius: 0 3px 3px 0;
+    pointer-events: none;
+    transform: none !important;
+  }
+
+  /* ============ CLIMA MINI (solo móvil) ============ */
+  .clima-mini {
+    display: none;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    color: white;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(124,58,237,0.3);
+  }
+  .clima-mini-inner {
+    max-width: 1300px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .clima-mini-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .clima-mini-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+  }
+  .clima-mini-icon svg { width: 22px; height: 22px; }
+  .clima-mini-info { min-width: 0; }
+  .clima-mini-ciudad {
+    font-size: 11.5px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+  .clima-mini-desc {
+    font-size: 10.5px; font-weight: 600;
+    color: rgba(255,255,255,0.85); line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .clima-mini-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .clima-mini-temp {
+    font-size: 22px; font-weight: 900;
+    letter-spacing: -1px; line-height: 1;
+  }
+  .clima-mini-extra {
+    display: flex; flex-direction: column; gap: 0;
+    font-size: 9.5px; color: rgba(255,255,255,0.85);
+    font-weight: 600; line-height: 1.2; text-align: right;
+  }
+
+  /* ============ HEADER ============ */
+  header {
+    background: linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #ff9900 100%);
+    background-size: 200% 200%;
+    animation: headerGradient 12s ease infinite;
+    padding: 26px 20px 22px;
+    color: white;
+    box-shadow: 0 4px 24px rgba(124,58,237,0.35);
+    position: sticky; top: 38px; z-index: 100;
+    overflow: hidden;
+  }
+  @keyframes headerGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  header::after {
+    content: ''; position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+    animation: pulseGlow 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+  }
+  .header-inner {
+    max-width: 1300px; margin: 0 auto;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    position: relative; z-index: 2;
+  }
+  .logo-wrap {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; user-select: none; flex-shrink: 0;
+  }
+  .logo-icon {
+	  width: 42px; height: 42px;
+	  background: rgba(255,255,255,0.18);
+	  border: 2px solid rgba(255,255,255,0.35);
+	  border-radius: 12px;
+	  display: flex; align-items: center; justify-content: center;
+	  overflow: hidden;               
+	  box-shadow: 0 4px 14px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+	  animation: logoSpin 6s ease-in-out infinite;
+	}
+
+	.logo-icon img {
+	  width: 100%;
+	  height: 100%;
+	  object-fit: cover;              
+	  display: block;
+	  border-radius: 10px;
+	}
+  @keyframes logoSpin {
+    0%, 100% { transform: rotate(-3deg) scale(1); }
+    50% { transform: rotate(3deg) scale(1.05); }
+  }
+  header h1 {
+    font-size: 26px; font-weight: 900;
+    letter-spacing: -1px; line-height: 1;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    background: linear-gradient(135deg, #ffffff 0%, #ffe4b3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header h1 .ia {
+    background: linear-gradient(135deg, #4ade80, #22d3ee);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(74,222,128,0.5);
+  }
+  header h1 .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    margin-left: 6px;
+    box-shadow: 0 0 12px #4ade80;
+    animation: dotPulse 1.5s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  @keyframes dotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+  .tagline {
+    font-size: 11px; font-weight: 600;
+    color: rgba(255,255,255,0.75);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin-top: 4px;
+  }
+
+  /* ============ BUSCADOR ============ */
+  .search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+    max-width: 520px;
+    margin-left: auto;
+  }
+  .search-wrapper::before {
+    content: '🔍'; position: absolute; left: 18px; top: 50%;
+    transform: translateY(-50%); font-size: 15px; opacity: 0.6; pointer-events: none;
+    z-index: 2;
+  }
+  #buscador {
+    width: 100%;
+    padding: 13px 46px 13px 46px;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    outline: none;
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  #buscador:focus {
+    box-shadow: 0 6px 28px rgba(0,0,0,0.25);
+    transform: scale(1.01);
+  }
+  #buscador::-webkit-search-cancel-button { display: none; }
+  #buscador::-ms-clear { display: none; }
+
+  .btn-limpiar {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.7);
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    color: white;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    transition: transform 0.2s, opacity 0.2s;
+    z-index: 3;
+    padding: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .btn-limpiar.visible {
+    display: flex;
+    transform: translateY(-50%) scale(1);
+  }
+  .btn-limpiar:hover {
+    transform: translateY(-50%) scale(1.12);
+    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.5);
+  }
+  .btn-limpiar:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+
+  /* ============ BOTÓN LUPA MÓVIL (colapsado) ============ */
+  .btn-lupa-movil {
+    display: none;
+  }
+
+  /* ============ LAYOUT ============ */
+  .layout {
+    max-width: 1300px; margin: 26px auto 0;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 26px;
+    align-items: start;
+  }
+  main { margin: 0; min-width: 0; }
+
+  aside.sidebar {
+    position: sticky;
+    padding-top: 5px;
+    top: 130px;
+    display: flex; flex-direction: column; gap: 20px;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    padding-right: 6px;
+    padding-bottom: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violeta) transparent;
+  }
+  aside.sidebar::-webkit-scrollbar { width: 6px; }
+  aside.sidebar::-webkit-scrollbar-track { background: transparent; }
+  aside.sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--violeta), var(--rosa));
+    border-radius: 3px;
+  }
+  aside.sidebar .widget:last-child { margin-bottom: 8px; }
+
+  @media (min-width: 961px) {
+    main {
+      max-height: calc(100vh - 150px);
+      overflow-y: auto;
+      padding-right: 6px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--violeta) transparent;
+    }
+    main::-webkit-scrollbar { width: 6px; }
+    main::-webkit-scrollbar-track { background: transparent; }
+    main::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--violeta), var(--rosa));
+      border-radius: 3px;
+    }
+  }
+
+  @media (min-width: 961px) {
+    .clima-extra { padding-bottom: 40px; }
+  }
+
+  /* ============ TABLET (641px - 960px) ============ */
+  @media (min-width: 641px) and (max-width: 960px) {
+    body { padding-top: 36px; }
+    header {
+      padding: 20px 18px 18px;
+      top: 36px;
+    }
+    header h1 { font-size: 22px; }
+    .logo-icon { width: 40px; height: 40px; font-size: 20px; }
+    #buscador { padding: 12px 44px 12px 44px; font-size: 14px; }
+
+    .layout {
+      grid-template-columns: 1fr;
+      padding: 0 20px;
+      margin-top: 20px;
+      gap: 20px;
+    }
+
+    aside.sidebar {
+      position: static;
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+      padding-bottom: 0;
+      order: -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    aside.sidebar .widget {
+      margin: 0;
+      padding: 18px 20px;
+    }
+
+    aside.sidebar { height: 250px; }
+    #widget-noticias .news-carousel { height: 150px; }
+
+    main {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .post-card { grid-template-columns: 220px 1fr; }
+    .post-card img { min-height: 180px; }
+    .post-articulo { padding: 42px; }
+    .post-articulo h1 { font-size: 28px; }
+    .post-contenido { font-size: 16.5px; }
+  }
+
+  @media (min-width: 961px) {
+    .post-card { grid-template-columns: 220px 1fr; }
+    .post-card img { min-height: 165px; }
+    .post-articulo { padding: 42px; }
+  }
+
+  /* ============ MÓVIL (≤ 640px) ============ */
+  @media (max-width: 640px) {
+    body { padding-top: 38px; }
+    header {
+      padding: 25px;
+      top: 38px;
+    }
+    .header-inner { gap: 10px; flex-wrap: nowrap; }
+    header h1 { font-size: 19px; }
+    .logo-icon { width: 34px; height: 34px; font-size: 17px; }
+    .tagline { font-size: 9.5px; letter-spacing: 1px; }
+
+    /* === BUSCADOR COLAPSADO EN MÓVIL === */
+    .header-inner {
+      position: relative;
+    }
+
+    .logo-wrap {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    /* Cuando está activo, ocultamos el logo */
+    .header-inner.buscando .logo-wrap {
+      opacity: 0;
+      transform: translateX(-10px);
+      pointer-events: none;
+      position: absolute;
+      left: 14px;
+    }
+
+    /* Botón lupa (estado colapsado) */
+    .btn-lupa-movil {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin-left: auto;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .btn-lupa-movil:active {
+      transform: scale(0.92);
+    }
+    .header-inner.buscando .btn-lupa-movil {
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      right: 14px;
+    }
+
+    /* Wrapper del buscador colapsado por defecto */
+    .search-wrapper {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%) scaleX(0);
+      transform-origin: right center;
+      opacity: 0;
+      pointer-events: none;
+      min-width: 0;
+      max-width: none;
+      width: auto;
+      margin: 0;
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;
+      z-index: 5;
+    }
+    .header-inner.buscando .search-wrapper {
+      transform: translateY(-50%) scaleX(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #buscador {
+      padding: 10px 42px 10px 40px;
+      font-size: 13.5px;
+    }
+
+    .search-wrapper::before { left: 14px; font-size: 14px; }
+
+    .btn-limpiar {
+      right: 8px;
+      width: 26px;
+      height: 26px;
+      font-size: 14px;
+    }
+
+    .clima-mini { display: block; }
+
+    .layout {
+      grid-template-columns: 1fr;
+      padding: 0 14px;
+      margin-top: 16px;
+      gap: 16px;
+    }
+
+    aside.sidebar {
+      position: static;
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+      padding-bottom: 0;
+      padding-top: 6px;
+      order: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    main {
+      max-height: none;
+      overflow: visible;
+      padding-right: 0;
+      order: 1;
+    }
+
+    aside.sidebar #widget-clima { display: none; }
+
+    .widget { padding: 16px 18px; }
+    .widget-title { font-size: 12px; margin-bottom: 12px; }
+
+    .news-carousel { height: 240px; }
+    .noticia-item { padding: 8px; gap: 8px; }
+    .noticia-item img { width: 46px; height: 46px; }
+    .noticia-titulo { font-size: 12px; }
+    .noticia-fuente { font-size: 10px; }
+
+    .post-card { grid-template-columns: 1fr; }
+    .post-card-img-wrap {
+      height: 200px;
+      min-height: unset;
+      max-height: 200px;
+    }
+    .post-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #eee;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+    .post-card-body { padding: 14px 16px; }
+    .post-card h2 { font-size: 16.5px; line-height: 1.35; margin-bottom: 8px; }
+    .post-card .extracto { font-size: 13px; }
+    .post-card .leer-mas { font-size: 13px; }
+
+    .post-articulo { padding: 20px 16px; border-radius: 14px; }
+    .post-articulo h1 { font-size: 21px; line-height: 1.3; }
+    .post-articulo img.hero {
+      border-radius: 10px;
+      margin-bottom: 18px;
+      max-height: 220px;
+      object-fit: cover;
+    }
+    .post-contenido { font-size: 15px; line-height: 1.75; }
+    .post-contenido h2 { font-size: 18px; margin: 22px 0 10px; }
+    .post-meta { font-size: 11.5px; margin-bottom: 18px; }
+
+    .keywords-bloque { padding: 14px; margin: 20px 0 6px; }
+    .keyword { padding: 6px 11px; font-size: 11.5px; }
+    .btn-amazon { padding: 12px 20px; text-align: center; font-size: 14px; width: 100%; }
+
+    .sugeridos-titulo { font-size: 18px; margin-bottom: 14px; }
+    .sugeridos-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .sugerido-card img { height: 160px; }
+
+    .footer-apps { padding: 28px 0; margin-top: 34px; }
+    .footer-apps-inner { padding: 0 14px; }
+    .recom-titulo { font-size: 12.5px; margin-bottom: 16px; }
+    .app-card { width: 125px; padding: 12px 8px; }
+    .app-card img { width: 50px; height: 50px; }
+    .app-card .app-name { font-size: 11px; min-height: 28px; }
+    .app-card .app-price { font-size: 10px; }
+
+    .scrolling-bar { font-size: 11.5px; padding: 10px 0; }
+    .scrolling-bar .data-item { margin-right: 30px; }
+
+    footer.disclaimer { padding: 24px 14px; font-size: 11px; }
+  }
+
+  /* ============ WIDGETS ============ */
+  .widget {
+    background: white;
+    border-radius: var(--radio);
+    padding: 20px 22px;
+    box-shadow: var(--sombra);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease backwards;
+  }
+  .widget:nth-child(1) { animation-delay: 0.1s; }
+  .widget:nth-child(2) { animation-delay: 0.2s; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: none; }
+  }
+  .widget::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja), var(--violeta));
+    background-size: 300% 100%;
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 0% 0; }
+    100% { background-position: 300% 0; }
+  }
+  .widget:hover { transform: translateY(-4px); box-shadow: var(--sombra-hover); }
+  .widget-title {
+    font-size: 13px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.7px;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .widget-title::before {
+    content: ''; width: 4px; height: 16px;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    border-radius: 2px;
+  }
+
+  /* ============ CLIMA ============ */
+  .clima-main { display: flex; flex-direction: column; gap: 12px; }
+  .clima-top { display: flex; align-items: center; gap: 14px; }
+  .clima-icon {
+    width: 56px; height: 56px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #e0e7ff, #f0f9ff);
+    border-radius: 14px;
+    animation: iconFloat 4s ease-in-out infinite;
+  }
+  @keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .clima-icon svg { display: block; }
+  .clima-info { flex: 1; min-width: 0; }
+  .clima-ciudad {
+    font-size: 14px; font-weight: 800; color: var(--texto);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+  .clima-desc { font-size: 13px; color: var(--texto-suave); font-weight: 600; }
+  .clima-temp {
+    font-size: 40px; font-weight: 900;
+    background: linear-gradient(135deg, var(--violeta), var(--cyan));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1; letter-spacing: -1.5px; flex-shrink: 0;
+  }
+  .clima-extra {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    padding-top: 10px; border-top: 1px solid var(--gris-medio);
+    margin-bottom: 20px;
+  }
+  .clima-extra > div {
+    text-align: center;
+    background: linear-gradient(135deg, var(--gris-claro), #eef2ff);
+    padding: 8px 4px; border-radius: 10px;
+    font-size: 11px; color: var(--texto-suave);
+    font-weight: 600; line-height: 1.3;
+    transition: transform 0.2s;
+  }
+  .clima-extra > div:hover { transform: translateY(-2px); }
+  .clima-extra strong {
+    display: block; font-size: 14px; color: var(--texto);
+    font-weight: 800; margin-top: 2px;
+  }
+
+  /* ============ NOTICIAS CARRUSEL VERTICAL ============ */
+  .news-carousel {
+    height: 280px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 12px;
+    background: linear-gradient(180deg, transparent 0%, transparent 85%, rgba(255,255,255,0.9) 100%);
+  }
+  .news-track {
+    display: flex; flex-direction: column; gap: 10px;
+    animation: scrollUp 24s linear infinite;
+  }
+  .news-carousel:hover .news-track { animation-play-state: paused; }
+  @keyframes scrollUp {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-50%); }
+  }
+  .noticia-item {
+    display: flex; gap: 10px; padding: 10px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--gris-claro), #f0f4ff);
+    cursor: default; user-select: none;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+    flex-shrink: 0;
+  }
+  .noticia-item:hover {
+    border-left-color: var(--violeta);
+    background: linear-gradient(135deg, #ede9fe, #f0f4ff);
+    transform: translateX(4px);
+  }
+  .noticia-item img {
+    width: 52px; height: 52px; object-fit: cover;
+    border-radius: 8px; flex-shrink: 0; background: #eee;
+  }
+  .noticia-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .noticia-titulo {
+    font-size: 12.5px; font-weight: 700; line-height: 1.3;
+    margin-bottom: 3px; color: var(--texto);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .noticia-fuente {
+    font-size: 10.5px; font-weight: 800;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+
+  .widget-loading { text-align: center; padding: 20px; color: var(--texto-suave); font-size: 13px; }
+  .widget-loading::before {
+    content: ''; display: block; width: 24px; height: 24px;
+    border: 3px solid var(--gris-medio);
+    border-top-color: var(--violeta);
+    border-right-color: var(--rosa);
+    border-radius: 50%; margin: 0 auto 12px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============ POSTS ============ */
+  .lista-posts { display: flex; padding: 6px; flex-direction: column; gap: 22px; }
+  .post-card {
+    background: white; border-radius: var(--radio); overflow: hidden;
+    box-shadow: var(--sombra);
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s;
+    cursor: pointer; display: grid;
+    position: relative;
+    animation: fadeInUp 0.5s ease backwards;
+  }
+  .post-card::after {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: linear-gradient(180deg, var(--violeta), var(--rosa), var(--naranja));
+    transform: scaleY(0); transform-origin: top;
+    transition: transform 0.4s;
+  }
+  .post-card:hover::after { transform: scaleY(1); }
+  .post-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: var(--sombra-hover);
+  }
+  .post-card-img-wrap {
+    overflow: hidden; position: relative;
+    min-height: 165px;
+    height: 240px;
+  }
+  .post-card img {
+    width: 100%; height: 100%; object-fit: cover;
+    background: #eee; display: block;
+    transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .post-card:hover img { transform: scale(1.08); }
+  .post-card-body { padding: 20px 24px; display: flex; flex-direction: column; }
+  .post-card-fecha {
+    font-size: 12px; font-weight: 800;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;
+  }
+  .post-card h2 {
+    font-size: 21px; font-weight: 800; line-height: 1.3;
+    margin-bottom: 10px; letter-spacing: -0.4px; color: var(--texto);
+    transition: color 0.2s;
+  }
+  .post-card:hover h2 {
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .post-card .extracto {
+    font-size: 14.5px; color: var(--texto-suave); line-height: 1.6;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; flex: 1;
+  }
+  .post-card .leer-mas {
+    margin-top: 12px; font-size: 14px; font-weight: 800;
+    color: var(--violeta);
+    display: flex; align-items: center; gap: 6px;
+    transition: gap 0.2s;
+  }
+  .post-card:hover .leer-mas { gap: 12px; }
+
+  /* VISTA POST */
+  .post-vista { display: none; }
+  .post-vista.activo { display: block; padding-left: 2px; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: none; } }
+
+  .post-articulo {
+    background: white; border-radius: var(--radio);
+    box-shadow: var(--sombra); margin-bottom: 32px;
+    position: relative; overflow: hidden;
+  }
+  .post-articulo::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 100%; height: 4px;
+    background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja), var(--cyan));
+    background-size: 300% 100%;
+    animation: shimmer 4s linear infinite;
+  }
+  .post-articulo h1 {
+    font-size: 34px; line-height: 1.2; font-weight: 900;
+    margin-bottom: 16px; letter-spacing: -0.8px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #4a1d96 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .post-meta {
+    font-size: 13px; color: var(--texto-suave); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin-bottom: 26px; display: flex; align-items: center; gap: 10px;
+  }
+  .post-meta::before { content: '📅'; }
+  .post-articulo img.hero {
+    width: 100%; height: auto; border-radius: 12px;
+    margin-bottom: 30px; max-height: 440px; object-fit: cover;
+    box-shadow: 0 12px 32px rgba(124,58,237,0.2);
+  }
+  .post-contenido { font-size: 17px; line-height: 1.8; color: #2a2a2a; }
+  .post-contenido p { margin-bottom: 20px; }
+  .post-contenido h2 {
+    font-size: 23px; font-weight: 800; margin: 36px 0 16px;
+    letter-spacing: -0.3px;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .post-contenido ul, .post-contenido ol { margin: 0 0 22px 26px; }
+  .post-contenido li { margin-bottom: 10px; }
+
+  .kw-inline {
+    color: var(--violeta); font-weight: 700; text-decoration: none;
+    border-bottom: 2px dotted var(--violeta); padding-bottom: 1px;
+    transition: border-color 0.2s; cursor: pointer;
+  }
+  .kw-inline:hover {
+    border-bottom-color: var(--rosa);
+    border-bottom-style: solid;
+  }
+
+  .keywords-bloque {
+    background: linear-gradient(135deg, #faf5ff, #ede9fe);
+    border: 1px solid #ddd6fe; border-radius: 14px;
+    padding: 10px; margin: 34px 0 6px;
+  }
+  .keywords-bloque h3 {
+    font-size: 14px; font-weight: 800;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .keywords-bloque .keywords { display: flex; flex-wrap: wrap; gap: 8px; }
+  .keyword {
+    background: white; color: var(--violeta); border: 1.5px solid #ddd6fe;
+    padding: 8px 15px; border-radius: 22px; font-size: 13px;
+    font-weight: 700; text-decoration: none; transition: all 0.25s;
+  }
+  .keyword:hover {
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    color: white; border-color: transparent;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(124,58,237,0.4);
+  }
+
+  .btn-amazon {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(135deg, #ff9900, #e68a00);
+    text-align: center;
+    color: white; padding: 16px 32px; border-radius: 14px;
+    text-decoration: none; font-weight: 800; font-size: 16px;
+    margin: 10px 0 22px; transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(255,153,0,0.45);
+    position: relative; overflow: hidden;
+  }
+  .btn-amazon::before {
+    content: ''; position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    transition: left 0.5s;
+  }
+  .btn-amazon:hover::before { left: 100%; }
+  .btn-amazon:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255,153,0,0.55);
+  }
+
+  .sugeridos-titulo {
+    font-size: 23px; font-weight: 900; margin-bottom: 22px;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sugeridos-titulo::before { content: '🔎'; -webkit-text-fill-color: initial; }
+  .sugeridos-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px; margin-bottom: 42px;
+  }
+  .sugerido-card {
+    background: white; border-radius: 14px; overflow: hidden;
+    box-shadow: var(--sombra); cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .sugerido-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: var(--sombra-hover);
+  }
+  .sugerido-card img {
+    width: 100%; height: 150px; object-fit: cover;
+    background: #eee; display: block;
+    transition: transform 0.5s;
+  }
+  .sugerido-card:hover img { transform: scale(1.06); }
+  .sugerido-card-body { padding: 15px 17px; }
+  .sugerido-card h4 {
+    font-size: 15px; font-weight: 800; line-height: 1.35; margin-bottom: 8px;
+  }
+  .sugerido-card .fecha {
+    font-size: 11px; font-weight: 800;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  .vacio { text-align: center; padding: 100px 20px; }
+  .vacio::before {
+    content: '📭'; display: block; font-size: 76px;
+    margin-bottom: 22px; opacity: 0.4;
+    animation: iconFloat 3s ease-in-out infinite;
+  }
+  .vacio h3 { font-size: 22px; margin-bottom: 10px; font-weight: 800; }
+  .vacio p { color: var(--texto-suave); font-size: 15px; }
+
+  .paginacion { display: flex; justify-content: center; gap: 8px; margin: 46px 0 20px; flex-wrap: wrap; }
+  .paginacion button {
+    min-width: 42px; height: 42px; padding: 0 14px;
+    border: 1.5px solid var(--gris-medio); background: white;
+    border-radius: 12px; cursor: pointer; font-size: 14px;
+    font-weight: 700; color: var(--texto); transition: all 0.25s;
+  }
+  .paginacion button:hover:not(.activo):not(:disabled) {
+    border-color: var(--violeta); color: var(--violeta);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(124,58,237,0.2);
+  }
+  .paginacion button.activo {
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    color: white; border-color: transparent;
+    box-shadow: 0 6px 20px rgba(124,58,237,0.45);
+    transform: scale(1.08);
+  }
+  .paginacion button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ============ FOOTER APPS CARRUSEL ============ */
+  .footer-apps {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+    border-top: 1px solid var(--gris-medio);
+    padding: 10px 0; margin-top: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .footer-apps::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja), var(--cyan), var(--violeta));
+    background-size: 300% 100%;
+    animation: shimmer 5s linear infinite;
+  }
+  .footer-apps-inner { max-width: 1300px; margin: 0 auto; padding: 0 20px; }
+  .recom-titulo {
+    font-size: 15px; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+  }
+  .recom-titulo::before {
+    content: '⭐'; font-size: 20px;
+    -webkit-text-fill-color: initial;
+    animation: iconFloat 3s ease-in-out infinite;
+  }
+
+  .apps-carousel {
+    overflow: hidden;
+    position: relative;
+    padding: 10px 0;
+    mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  }
+  .apps-track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    animation: scrollRight 40s linear infinite;
+  }
+  .apps-carousel:hover .apps-track { animation-play-state: paused; }
+  @keyframes scrollRight {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+
+  .app-card {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; gap: 10px;
+    padding: 18px 14px;
+    background: white;
+    border-radius: 14px;
+    text-decoration: none; color: var(--texto);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    border: 1.5px solid var(--gris-medio);
+    width: 170px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .app-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, var(--violeta), var(--rosa), var(--naranja));
+    opacity: 0; transition: opacity 0.3s;
+    z-index: 0;
+  }
+  .app-card > * { position: relative; z-index: 1; transition: color 0.3s; }
+  .app-card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(124,58,237,0.3);
+    border-color: transparent;
+  }
+  .app-card:hover::before { opacity: 1; }
+  .app-card:hover .app-name,
+  .app-card:hover .app-price { color: white !important; -webkit-text-fill-color: white; }
+  .app-card img {
+    width: 68px; height: 68px; border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: #eee;
+    transition: transform 0.3s;
+  }
+  .app-card:hover img { transform: scale(1.1) rotate(-3deg); }
+  .app-card .app-name {
+    font-size: 12.5px; font-weight: 800; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 34px;
+  }
+  .app-card .app-price {
+    font-size: 11.5px; font-weight: 800;
+    color: var(--violeta);
+  }
+  .app-card .app-price.free { color: var(--texto-suave); }
+
+  .play-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 24px;
+    font-size: 13.5px; font-weight: 800;
+    color: var(--violeta); text-decoration: none;
+    transition: gap 0.2s;
+  }
+  .play-link:hover { gap: 12px; }
+  .play-link::after { content: '↗'; font-size: 14px; }
+
+  footer.disclaimer {
+    text-align: center; padding: 34px 20px; color: var(--texto-suave);
+    font-size: 12px; background: var(--gris-claro); line-height: 1.7;
+  }
+  footer.disclaimer p { max-width: 720px; margin: 0 auto; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--gris-claro); }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--violeta), var(--rosa));
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--rosa), var(--naranja));
+  }
+
+  footer.disclaimer .copyright {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--gris-medio);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--texto-suave);
+    letter-spacing: 0.4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== BARRA COTIZACIONES ===== -->
+<div class="scrolling-bar">
+  <div class="data-content" id="data-content">
+    <span class="data-item">⏳ Cargando cotizaciones...</span>
+  </div>
+</div>
+
+<!-- ===== BARRA DE PROGRESO DE SCROLL ===== -->
+<div class="scroll-progress" id="scroll-progress"></div>
+
+<!-- ===== CLIMA MINI (solo móvil) ===== -->
+<div class="clima-mini" id="clima-mini">
+  <div class="clima-mini-inner">
+    <div class="clima-mini-left">
+      <div class="clima-mini-icon" id="clima-mini-icon">
+        <svg viewBox="0 0 64 64" width="22" height="22"><path d="M14 42a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#fff"/></svg>
+      </div>
+      <div class="clima-mini-info">
+        <div class="clima-mini-ciudad" id="clima-mini-ciudad">📍 Detectando...</div>
+        <div class="clima-mini-desc" id="clima-mini-desc">Cargando clima</div>
+      </div>
+    </div>
+    <div class="clima-mini-right">
+      <div class="clima-mini-temp" id="clima-mini-temp">--°</div>
+      <div class="clima-mini-extra">
+        <span id="clima-mini-hum">--%</span>
+        <span id="clima-mini-viento">-- km/h</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-inner" id="header-inner">
+    <div class="logo-wrap" onclick="volverHome()">
+      <div class="logo-icon">
+		<img src="/img/icon-192.png" alt="DiarIA" width="42" height="42">
+	  </div>
+      <div>
+        <h1>Diar<span class="ia">IA</span><span class="dot"></span></h1>
+        <div class="tagline">Inteligencia diaria</div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-lupa-movil" id="btn-lupa-movil" aria-label="Buscar">🔍</button>
+
+    <div class="search-wrapper" id="search-wrapper">
+      <input type="text" id="buscador" placeholder="Buscar en todo el contenido..." autocomplete="off">
+      <button type="button" class="btn-limpiar" id="btn-limpiar" aria-label="Limpiar búsqueda">✕</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== LAYOUT ===== -->
+<div class="layout">
+
+  <main>
+    <section id="vista-home">
+      <div id="lista-posts" class="lista-posts"></div>
+      <div id="paginacion" class="paginacion"></div>
+    </section>
+
+    <section id="vista-post" class="post-vista">
+      <article class="post-articulo" id="post-articulo"></article>
+      <h3 class="sugeridos-titulo">Temas relacionados</h3>
+      <div class="sugeridos-grid" id="sugeridos"></div>
+    </section>
+  </main>
+
+  <aside class="sidebar">
+    <div class="widget" id="widget-clima">
+      <div class="widget-title">Clima actual</div>
+      <div id="clima-contenido">
+        <div class="widget-loading">Detectando ubicación...</div>
+      </div>
+    </div>
+
+    <div class="widget" id="widget-noticias">
+      <div class="widget-title">Últimas noticias</div>
+      <div id="noticias-contenido">
+        <div class="widget-loading">Cargando noticias...</div>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ===== FOOTER APPS ===== -->
+<div class="footer-apps">
+  <div class="footer-apps-inner">
+    <div class="recom-titulo">Apps recomendadas del desarrollador</div>
+    <div class="apps-carousel">
+      <div class="apps-track" id="apps-track"></div>
+    </div>
+    <a class="play-link" href="https://play.google.com/store/apps/dev?id=7886307353497972179" target="_blank" rel="noopener">
+      Ver todas las apps en Google Play
+    </a>
+  </div>
+</div>
+
+<footer class="disclaimer">
+  <p>Como afiliado de Amazon gano comisiones por las compras que cumplan los requisitos.<br>
+  Los precios y disponibilidad pueden variar. Este sitio muestra información de terceros con fines informativos.</p>
+  <p class="copyright">© 2026 DiarIA · Todos los derechos reservados.</p>
+</footer>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN (cargada desde /api/config)
+   ========================================================= */
+let SHEET_CSV_URL = '';
+let FIREBASE_URL = '';
+let NEWSDATA_API_KEY = '';
+
+const FREE_SHIPPING = 'p_n_free_shipping_eligible:20930980031';
+const POSTS_POR_PAGINA = 5;
+
+async function cargarConfig() {
+  try {
+    const res = await fetch('/api/config');
+    if (!res.ok) throw new Error('No se pudo cargar /api/config');
+    const cfg = await res.json();
+    SHEET_CSV_URL    = cfg.SHEET_CSV_URL    || '';
+    FIREBASE_URL     = cfg.FIREBASE_URL     || '';
+    NEWSDATA_API_KEY = cfg.NEWSDATA_API_KEY || '';
+  } catch (e) {
+    console.error('Error cargando configuración:', e);
+    // Fallback opcional en desarrollo local
+    SHEET_CSV_URL    = window.__FALLBACK_SHEET__    || '';
+    FIREBASE_URL     = window.__FALLBACK_FIREBASE__ || '';
+    NEWSDATA_API_KEY = window.__FALLBACK_NEWS__     || '';
+  }
+}
+
+let todosLosPosts = [];
+let postsFiltrados = [];
+let paginaActual = 1;
+let afiliadoId = null;
+let postActual = null;
+let datosClimaGlobal = null;
+
+/* =========================================================
+   APPS RECOMENDADAS
+   ========================================================= */
+const APPS = [
+  { nombre: 'AyudaSur: Trabajos y Servicios', id: 'com.ayudasur.ar', icono: 'https://play-lh.googleusercontent.com/C5K5Q9CDJuQZmnc4qzUur3EpJKp5s-DSa2-tdjmCHTc3HLPo3zyKm00wc1l5uyiLNQNDyfLHv_dSnIJNn1xU=s256-rw', precio: null },
+  { nombre: 'JUGA PRO', id: 'com.jugapro', icono: 'https://play-lh.googleusercontent.com/86m8mmvrmytkqSaueP1QMT2Izuihcb9YdO3F4-KjXcYj4nsH4nRcgpzYDmtnujHDlW_1JKoruyMjOeF2zbak=s256-rw', precio: '$ 1.495,00' },
+  { nombre: 'Quiniela PRO: Sorteo Argentino', id: 'quiniela.pro', icono: 'https://play-lh.googleusercontent.com/kesDfhUVdDenMXdcjWW7RQxI7p-pnpAEMmsAea5rSUQcqw1gxM0vj5Aro8SzJBsNaCV_4FXJefyP7h7zRA9aWQ=s256-rw', precio: null },
+  { nombre: 'Mini Juegos 3D', id: 'mini.juegos3d', icono: 'https://play-lh.googleusercontent.com/XZR21aaTM7B08ojTZoG5aRU02IxOxF7h51J-QYHXAfjoCBYGoFvR9pWftWw4XeOYjiIsrM582wJ-lzvlzI9Cvg=s256-rw', precio: null },
+  { nombre: 'ZonaHD Stream', id: 'messi.el10', icono: 'https://play-lh.googleusercontent.com/9p4rzy05aLUc24a5nduqwe0XkTnxcApDJ_A57XhxLYY3e9Dzdw8-a3BdaGHF8W3QVWyBlsvAuNKfqjaLAnXBPg=s256-rw', precio: null },
+  { nombre: 'Virtual Magic', id: 'appinventor.ai_facebookdeedgar2017.Virtual_Magic', icono: 'https://play-lh.googleusercontent.com/iteqHER1Hg4NpcMLLFBhTZsx-2-l9leSUD5q3sgebyIlzxP7z6GSBEQG61BMaRzOPQ6qSewlkIct4rXi9aPwbw=s256-rw', precio: '$ 299,00' },
+  { nombre: 'Pong 5', id: 'appinventor.ai_facebookdeedgar2017.Pong_5', icono: 'https://play-lh.googleusercontent.com/fweI1zJTxmNfbIyA7XVdn9gNPA4XGtieafZJT0TP7b5rwBput_f0O3HoPCeUgBvCeqN_3K8GfaKGphgx2ZDNLw=s256-rw', precio: null },
+  { nombre: 'Piensa Rápido', id: 'appinventor.ai_facebookdeedgar2017.Piensa_Rapido', icono: 'https://play-lh.googleusercontent.com/LmnB-t5T_3IKK60D3hC7ScH5O739InHVqGdLizS8ZMBEIbeT7FP4oMhFEKntKvoKO9Vjxkrajxqw36iJpc4m=s256-rw', precio: null },
+  { nombre: 'Garabato', id: 'appinventor.ai_ojedaezequiel083.Garabato_Full_Beta_3', icono: 'https://play-lh.googleusercontent.com/8jmBoFi6mvuDOmY0qojs_HafJrmaQgO4Jd9cP-az--5aOLIhVl971DtwXuaC1YvHa3MSEfZCRCE785jWJRQ94Hs=s256-rw', precio: null }
+];
+
+function renderApps() {
+  const cont = document.getElementById('apps-track');
+  if (!cont) return;
+  const appsDobles = [...APPS, ...APPS];
+  cont.innerHTML = appsDobles.map(a => `
+    <a class="app-card" href="https://play.google.com/store/apps/details?id=${a.id}" target="_blank" rel="noopener">
+      <img src="${a.icono}" alt="${a.nombre}" loading="lazy"
+	       referrerpolicy="no-referrer"
+           onerror="this.src='https://via.placeholder.com/68x68/f0f0f0/999?text=App'">
+      <div class="app-name">${a.nombre}</div>
+      <div class="app-price ${a.precio ? '' : 'free'}">${a.precio || 'Gratis'}</div>
+    </a>
+  `).join('');
+}
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+function parseCSV(texto) {
+  const filas = [];
+  let fila = [], campo = '', enComillas = false;
+  for (let i = 0; i < texto.length; i++) {
+    const c = texto[i], sig = texto[i+1];
+    if (enComillas) {
+      if (c === '"' && sig === '"') { campo += '"'; i++; }
+      else if (c === '"') enComillas = false;
+      else campo += c;
+    } else {
+      if (c === '"') enComillas = true;
+      else if (c === ',') { fila.push(campo); campo = ''; }
+      else if (c === '\n') { fila.push(campo); filas.push(fila); fila = []; campo = ''; }
+      else if (c !== '\r') campo += c;
+    }
+  }
+  if (campo || fila.length) { fila.push(campo); filas.push(fila); }
+  return filas;
+}
+
+function limpiarTexto(s) {
+  if (!s) return '';
+  return s.replace(/Â¡/g,'¡').replace(/Â©/g,'©').replace(/Â/g,'')
+          .replace(/Ã¡/g,'á').replace(/Ã©/g,'é').replace(/Ã/g,'í')
+          .replace(/Ã³/g,'ó').replace(/Ãº/g,'ú').replace(/Ã±/g,'ñ');
+}
+
+function formatoFecha(f) {
+  if (!f) return '';
+  const d = new Date(f);
+  if (isNaN(d)) return f;
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function formatoFechaNoticia(fecha) {
+  if (!fecha) return '';
+  const d = new Date(fecha);
+  if (isNaN(d)) return '';
+  const ahora = new Date();
+  const diffMin = Math.floor((ahora - d) / 60000);
+  if (diffMin < 1) return 'ahora';
+  if (diffMin < 60) return `hace ${diffMin} min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `hace ${diffH}h`;
+  const diffD = Math.floor(diffH / 24);
+  if (diffD < 7) return `hace ${diffD}d`;
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+}
+
+/* =========================================================
+   CARGA DE DATOS
+   ========================================================= */
+async function cargarPosts() {
+  try {
+    const res = await fetch(SHEET_CSV_URL);
+    if (!res.ok) throw new Error('Error al leer Sheet');
+    const filas = parseCSV(await res.text());
+    if (filas.length < 2) return [];
+    return filas.slice(1).map((f, idx) => ({
+      id: idx,
+      fecha: limpiarTexto((f[0] || '').trim()),
+      titulo: limpiarTexto((f[1] || '').trim()),
+      imagen: (f[2] || '').trim(),
+      descripcion: limpiarTexto((f[3] || '').trim()),
+      contenido: limpiarTexto((f[4] || '').trim()),
+      keywords: (f[5] || '').split(',').map(k => limpiarTexto(k.trim())).filter(Boolean),
+      productos: (f[6] || '').split(',').map(p => p.trim()).filter(Boolean)
+    })).filter(p => p.titulo)
+      .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  } catch (e) { console.error('Error posts:', e); return []; }
+}
+
+async function cargarAfiliado() {
+  try {
+    const res = await fetch(FIREBASE_URL);
+    const data = await res.json();
+    return data.Afiliado || null;
+  } catch { return null; }
+}
+
+function urlBusqueda(t) {
+  const base = `https://www.amazon.es/s?k=${encodeURIComponent(t)}`;
+  return afiliadoId ? `${base}&tag=${afiliadoId}&rh=${FREE_SHIPPING}&ref=as_li_ss_tl` : base;
+}
+
+/* =========================================================
+   COTIZACIONES
+   ========================================================= */
+async function cargarCotizaciones() {
+  const cont = document.getElementById('data-content');
+  try {
+    const res = await fetch('https://api.bluelytics.com.ar/v2/latest');
+    const data = await res.json();
+    const names = {
+      oficial: '💵 Dólar Oficial', blue: '🔵 Dólar Blue',
+      oficial_euro: '💶 Euro Oficial', blue_euro: '💙 Euro Blue',
+      mep: '📊 Dólar MEP', ccl: '🌎 Dólar CCL'
+    };
+    let html = '';
+    for (const key in data) {
+      const c = data[key];
+      if (c && c.value_buy !== undefined && c.value_sell !== undefined) {
+        html += `<span class="data-item">${names[key] || key}: Compra $${c.value_buy} | Venta $${c.value_sell}</span>`;
+      }
+    }
+    cont.innerHTML = html || '<span class="data-item">Sin datos de cotización</span>';
+  } catch {
+    cont.innerHTML = '<span class="data-item">⚠️ No se pudieron cargar las cotizaciones</span>';
+  }
+}
+
+/* =========================================================
+   CLIMA
+   ========================================================= */
+function obtenerUbicacion() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('No soportado'));
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      reject, { timeout: 8000, maximumAge: 600000 }
+    );
+  });
+}
+
+async function obtenerUbicacionIP() {
+  const r = await fetch('https://ipapi.co/json/');
+  const d = await r.json();
+  return { lat: d.latitude, lon: d.longitude, ciudad: d.city };
+}
+
+const TRADUCCIONES_CLIMA = {
+  'sunny': 'Soleado', 'clear': 'Despejado',
+  'partly cloudy': 'Parcialmente nublado', 'cloudy': 'Nublado',
+  'overcast': 'Cielo cubierto', 'mist': 'Neblina', 'fog': 'Niebla',
+  'freezing fog': 'Niebla helada', 'patchy rain nearby': 'Lluvia dispersa',
+  'patchy rain possible': 'Posible lluvia', 'light rain': 'Lluvia ligera',
+  'light rain shower': 'Chaparrones ligeros', 'moderate rain': 'Lluvia moderada',
+  'moderate rain at times': 'Lluvia intermitente', 'heavy rain': 'Lluvia intensa',
+  'heavy rain at times': 'Lluvia intensa', 'light drizzle': 'Llovizna ligera',
+  'freezing drizzle': 'Llovizna helada', 'thundery outbreaks possible': 'Posibles tormentas',
+  'thundery outbreaks in nearby': 'Tormentas cerca',
+  'patchy light rain with thunder': 'Lluvia con truenos',
+  'moderate or heavy rain with thunder': 'Lluvia con truenos',
+  'patchy light snow': 'Nieve ligera', 'light snow': 'Nieve ligera',
+  'moderate snow': 'Nieve moderada', 'heavy snow': 'Nieve intensa',
+  'blizzard': 'Tormenta de nieve', 'blowing snow': 'Nieve soplada',
+  'sleet': 'Aguanieve', 'ice pellets': 'Granos de hielo'
+};
+
+function traducirClima(desc) {
+  const d = (desc || '').toLowerCase().trim();
+  return TRADUCCIONES_CLIMA[d] || desc;
+}
+
+function getIconoClimaSVG(code, size = 48) {
+  const c = parseInt(code);
+  const s = size;
+  if (c === 113) return `<svg viewBox="0 0 64 64" width="${s}" height="${s}"><circle cx="32" cy="32" r="13" fill="#fbbf24"/><g stroke="#fbbf24" stroke-width="4" stroke-linecap="round"><line x1="32" y1="6" x2="32" y2="14"/><line x1="32" y1="50" x2="32" y2="58"/><line x1="6" y1="32" x2="14" y2="32"/><line x1="50" y1="32" x2="58" y2="32"/><line x1="13" y1="13" x2="19" y2="19"/><line x1="45" y1="45" x2="51" y2="51"/><line x1="51" y1="13" x2="45" y2="19"/><line x1="13" y1="51" x2="19" y2="45"/></g></svg>`;
+  if (c >= 116 && c <= 119) return `<svg viewBox="0 0 64 64" width="${s}" height="${s}"><circle cx="22" cy="24" r="10" fill="#fbbf24"/><path d="M22 46a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#cbd5e1"/></svg>`;
+  if (c >= 119 && c <= 122) return `<svg viewBox="0 0 64 64" width="${s}" height="${s}"><path d="M14 42a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#94a3b8"/><path d="M24 50a8 8 0 0 1 0-16 9 9 0 0 1 17-1 8 8 0 0 1 0 17z" fill="#cbd5e1"/></svg>`;
+  if (c >= 176 && c < 200) return `<svg viewBox="0 0 64 64" width="${s}" height="${s}"><path d="M14 34a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#94a3b8"/><g stroke="#3b82f6" stroke-width="3" stroke-linecap="round"><line x1="22" y1="46" x2="20" y2="54"/><line x1="32" y1="46" x2="30" y2="54"/><line x1="42" y1="46" x2="40" y2="54"/></g></svg>`;
+  if (c >= 200 && c < 230) return `<svg viewBox="0 0 64 64" width="${s}" height="${s}"><path d="M14 34a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#6b7280"/><polygon points="30,42 24,54 30,54 26,62 38,48 32,48 36,42" fill="#fbbf24"/></svg>`;
+  if (c >= 227) return `<svg viewBox="0 0 64 64" width="${s}" height="${s}"><path d="M14 34a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#bfdbfe"/><g fill="#93c5fd"><circle cx="22" cy="48" r="2"/><circle cx="32" cy="52" r="2"/><circle cx="42" cy="48" r="2"/><circle cx="27" cy="56" r="2"/><circle cx="37" cy="56" r="2"/></g></svg>`;
+  return `<svg viewBox="0 0 64 64" width="${s}" height="${s}"><g stroke="#94a3b8" stroke-width="3" stroke-linecap="round"><line x1="14" y1="26" x2="50" y2="26"/><line x1="10" y1="36" x2="54" y2="36"/><line x1="16" y1="46" x2="48" y2="46"/></g></svg>`;
+}
+
+function renderClimaMini(datos) {
+  const ciudad = document.getElementById('clima-mini-ciudad');
+  const desc = document.getElementById('clima-mini-desc');
+  const temp = document.getElementById('clima-mini-temp');
+  const hum = document.getElementById('clima-mini-hum');
+  const viento = document.getElementById('clima-mini-viento');
+  const icon = document.getElementById('clima-mini-icon');
+
+  if (!ciudad) return;
+  ciudad.textContent = `📍 ${datos.ciudad}, ${datos.pais}`;
+  desc.textContent = datos.desc;
+  temp.textContent = `${datos.temp}°`;
+  hum.textContent = `💧 ${datos.humedad}%`;
+  viento.textContent = `💨 ${datos.viento} km/h`;
+  icon.innerHTML = getIconoClimaSVG(datos.code, 22);
+}
+
+async function cargarClima() {
+  const cont = document.getElementById('clima-contenido');
+  try {
+    let lat, lon, ciudadNombre = null;
+    try {
+      const coords = await obtenerUbicacion();
+      lat = coords.lat; lon = coords.lon;
+    } catch {
+      try {
+        const ip = await obtenerUbicacionIP();
+        lat = ip.lat; lon = ip.lon; ciudadNombre = ip.ciudad;
+      } catch {
+        lat = -34.6037; lon = -58.3816; ciudadNombre = 'Buenos Aires';
+      }
+    }
+
+    const res = await fetch(`https://wttr.in/${lat},${lon}?format=j1`);
+    const data = await res.json();
+    const cur = data.current_condition[0];
+    const area = data.nearest_area[0];
+    const ciudad = ciudadNombre || area.areaName[0].value;
+    const pais = area.country[0].value;
+    const descTraducida = traducirClima(cur.weatherDesc[0].value);
+
+    datosClimaGlobal = {
+      ciudad, pais,
+      desc: descTraducida,
+      temp: cur.temp_C,
+      humedad: cur.humidity,
+      viento: cur.windspeedKmph,
+      sensacion: cur.FeelsLikeC,
+      code: cur.weatherCode
+    };
+
+    renderClimaMini(datosClimaGlobal);
+
+    if (cont) {
+      cont.innerHTML = `
+        <div class="clima-main">
+          <div class="clima-top">
+            <div class="clima-icon" title="${descTraducida}">${getIconoClimaSVG(cur.weatherCode, 48)}</div>
+            <div class="clima-info">
+              <div class="clima-ciudad">📍 ${ciudad}, ${pais}</div>
+              <div class="clima-desc">${descTraducida}</div>
+            </div>
+            <div class="clima-temp">${cur.temp_C}°</div>
+          </div>
+          <div class="clima-extra">
+            <div>Humedad<strong>${cur.humidity}%</strong></div>
+            <div>Viento<strong>${cur.windspeedKmph} km/h</strong></div>
+            <div>Sensación<strong>${cur.FeelsLikeC}°C</strong></div>
+          </div>
+        </div>`;
+    }
+  } catch (e) {
+    console.error('Error clima:', e);
+    if (cont) cont.innerHTML = '<div class="widget-loading">⚠️ No se pudo cargar el clima</div>';
+    const miniCiudad = document.getElementById('clima-mini-ciudad');
+    if (miniCiudad) miniCiudad.textContent = '⚠️ Clima no disponible';
+  }
+}
+
+/* =========================================================
+   NOTICIAS CARRUSEL VERTICAL
+   ========================================================= */
+async function cargarNoticias() {
+  const cont = document.getElementById('noticias-contenido');
+  try {
+    const url = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_API_KEY}&language=es&category=top&size=6`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.status === 'error' || !data.results || !data.results.length) {
+      cont.innerHTML = '<div class="widget-loading">Sin noticias por el momento</div>';
+      return;
+    }
+
+    const items = data.results.map(n => `
+      <div class="noticia-item">
+        <img src="${n.image_url || 'https://via.placeholder.com/52x52/f0f0f0/999?text=N'}"
+             alt="" loading="lazy"
+             onerror="this.src='https://via.placeholder.com/52x52/f0f0f0/999?text=N'">
+        <div class="noticia-info">
+          <div class="noticia-titulo">${(n.title || '').substring(0, 90)}</div>
+          <div class="noticia-fuente">${n.source_name || 'Fuente'} · ${formatoFechaNoticia(n.pubDate)}</div>
+        </div>
+      </div>`).join('');
+
+    cont.innerHTML = `
+      <div class="news-carousel">
+        <div class="news-track">
+          ${items}
+          ${items}
+        </div>
+      </div>`;
+  } catch (e) {
+    console.error('Error noticias:', e);
+    cont.innerHTML = '<div class="widget-loading">⚠️ No se pudieron cargar las noticias</div>';
+  }
+}
+
+/* =========================================================
+   HOME
+   ========================================================= */
+function renderHome() {
+  const lista = document.getElementById('lista-posts');
+  const pag = document.getElementById('paginacion');
+
+  if (postsFiltrados.length === 0) {
+    lista.innerHTML = `<div class="vacio"><h3>Sin información por el momento</h3><p>Vuelve pronto para ver nuevos contenidos.</p></div>`;
+    pag.innerHTML = '';
+    return;
+  }
+
+  const inicio = (paginaActual - 1) * POSTS_POR_PAGINA;
+  const pagina = postsFiltrados.slice(inicio, inicio + POSTS_POR_PAGINA);
+
+  lista.innerHTML = pagina.map((p, i) => `
+    <article class="post-card" onclick="abrirPost(${p.id})" style="animation-delay: ${i * 0.08}s">
+      <div class="post-card-img-wrap">
+        <img src="${p.imagen}" alt="${p.titulo}" loading="lazy"
+             onerror="this.src='https://via.placeholder.com/400x300/f0f0f0/999?text=Sin+imagen'">
+      </div>
+      <div class="post-card-body">
+        <div class="post-card-fecha">${formatoFecha(p.fecha)}</div>
+        <h2>${p.titulo}</h2>
+        <p class="extracto">${p.descripcion}</p>
+        <span class="leer-mas">Leer artículo completo →</span>
+      </div>
+    </article>`).join('');
+
+  const totalPag = Math.ceil(postsFiltrados.length / POSTS_POR_PAGINA);
+  if (totalPag <= 1) { pag.innerHTML = ''; return; }
+  let html = `<button ${paginaActual === 1 ? 'disabled' : ''} onclick="irPagina(${paginaActual - 1})">‹</button>`;
+  for (let i = 1; i <= totalPag; i++) {
+    html += `<button class="${i === paginaActual ? 'activo' : ''}" onclick="irPagina(${i})">${i}</button>`;
+  }
+  html += `<button ${paginaActual === totalPag ? 'disabled' : ''} onclick="irPagina(${paginaActual + 1})">›</button>`;
+  pag.innerHTML = html;
+}
+
+function irPagina(n) {
+  paginaActual = n; renderHome();
+  const main = document.querySelector('main');
+  if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* =========================================================
+   POST INDIVIDUAL
+   ========================================================= */
+function resaltarKeywords(html, keywords) {
+  if (!keywords.length) return html;
+  const ordenadas = [...keywords].sort((a, b) => b.length - a.length);
+  let r = html;
+  ordenadas.forEach(kw => {
+    if (!kw) return;
+    const esc = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(${esc})`, 'gi');
+    r = r.replace(re, (m) =>
+      `<a class="kw-inline" href="${urlBusqueda(kw)}" target="_blank" rel="noopener noreferrer nofollow sponsored">${m}</a>`
+    );
+  });
+  return r;
+}
+
+function abrirPost(id) {
+  const post = todosLosPosts.find(p => p.id === id);
+  if (!post) return;
+  postActual = post;
+
+  document.getElementById('vista-home').style.display = 'none';
+  document.getElementById('vista-post').classList.add('activo');
+
+  const contenidoHTML = post.contenido
+    ? resaltarKeywords(post.contenido, post.keywords)
+    : `<p>${post.descripcion}</p>`;
+
+  const keywordsHTML = post.keywords.map(k =>
+    `<a class="keyword" href="${urlBusqueda(k)}" target="_blank" rel="noopener noreferrer nofollow sponsored">${k}</a>`
+  ).join('');
+
+  const btnProductos = post.productos.length
+    ? `<a class="btn-amazon" href="${urlBusqueda(post.productos.join(' '))}" target="_blank" rel="noopener noreferrer nofollow sponsored">🎁 Ver productos en Amazon</a>`
+    : '';
+
+  document.getElementById('post-articulo').innerHTML = `
+    <h1>${post.titulo}</h1>
+    <div class="post-meta">${formatoFecha(post.fecha)}</div>
+    <img class="hero" src="${post.imagen}" alt="${post.titulo}"
+         onerror="this.src='https://via.placeholder.com/800x400/f0f0f0/999?text=Sin+imagen'">
+    <div class="post-contenido">${contenidoHTML}</div>
+    ${btnProductos}
+    <div class="keywords-bloque">
+      <h3>🔍 Búsquedas relacionadas</h3>
+      <div class="keywords">${keywordsHTML}</div>
+    </div>`;
+
+  let cantidadSugeridos = 6;
+  if (window.innerWidth <= 640) {
+    cantidadSugeridos = 3;
+  } else if (window.innerWidth <= 960) {
+    cantidadSugeridos = 4;
+  }
+
+  const sugeridos = todosLosPosts
+    .filter(p => p.id !== post.id)
+    .map(p => ({
+      post: p,
+      coincidencias: p.keywords.filter(k => post.keywords.includes(k)).length
+    }))
+    .filter(s => s.coincidencias > 0)
+    .sort((a, b) => b.coincidencias - a.coincidencias)
+    .slice(0, cantidadSugeridos)
+    .map(s => s.post);
+
+  if (sugeridos.length === 0) {
+    sugeridos.push(...todosLosPosts
+      .filter(p => p.id !== post.id)
+      .slice(0, cantidadSugeridos)
+    );
+  }
+
+  document.getElementById('sugeridos').innerHTML = sugeridos.map(p => `
+    <div class="sugerido-card" onclick="abrirPost(${p.id})">
+      <img src="${p.imagen}" alt="${p.titulo}" loading="lazy"
+           onerror="this.src='https://via.placeholder.com/400x300/f0f0f0/999?text=Sin+imagen'">
+      <div class="sugerido-card-body">
+        <div class="fecha">${formatoFecha(p.fecha)}</div>
+        <h4>${p.titulo}</h4>
+      </div>
+    </div>`).join('');
+
+  const main = document.querySelector('main');
+  if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  actualizarProgresoScroll();
+}
+
+function volverHome() {
+  document.getElementById('vista-post').classList.remove('activo');
+  document.getElementById('vista-home').style.display = 'block';
+  postActual = null;
+  if (inputBuscador) {
+    inputBuscador.value = '';
+    // Refrescar posts sin filtro
+    postsFiltrados = [...todosLosPosts];
+    paginaActual = 1;
+    renderHome();
+    actualizarBotonLimpiar();
+  }
+  const main = document.querySelector('main');
+  if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  actualizarProgresoScroll();
+}
+
+/* =========================================================
+   BUSCADOR
+   ========================================================= */
+const inputBuscador = document.getElementById('buscador');
+const btnLimpiar = document.getElementById('btn-limpiar');
+const headerInner = document.getElementById('header-inner');
+const btnLupaMovil = document.getElementById('btn-lupa-movil');
+
+function actualizarBotonLimpiar() {
+  if (!btnLimpiar) return;
+  if (inputBuscador.value.length > 0) {
+    btnLimpiar.classList.add('visible');
+  } else {
+    btnLimpiar.classList.remove('visible');
+  }
+}
+
+function esMovil() {
+  return window.innerWidth <= 640;
+}
+
+function abrirBuscadorMovil() {
+  if (!esMovil()) return;
+  headerInner.classList.add('buscando');
+  setTimeout(() => inputBuscador.focus(), 120);
+}
+
+function cerrarBuscadorMovil() {
+  if (!esMovil()) return;
+  if (inputBuscador.value.trim() === '') {
+    headerInner.classList.remove('buscando');
+  }
+}
+
+if (btnLupaMovil) {
+  btnLupaMovil.addEventListener('click', abrirBuscadorMovil);
+}
+
+inputBuscador.addEventListener('input', (e) => {
+  if (postActual) volverHome();
+  const q = e.target.value.toLowerCase().trim();
+  postsFiltrados = !q ? [...todosLosPosts] : todosLosPosts.filter(p =>
+    p.titulo.toLowerCase().includes(q) ||
+    p.descripcion.toLowerCase().includes(q) ||
+    p.keywords.some(k => k.toLowerCase().includes(q))
+  );
+  paginaActual = 1;
+  renderHome();
+  actualizarBotonLimpiar();
+});
+
+inputBuscador.addEventListener('focus', () => {
+  if (esMovil()) headerInner.classList.add('buscando');
+});
+
+inputBuscador.addEventListener('blur', () => {
+  // Pequeño delay para permitir el click en la X
+  setTimeout(cerrarBuscadorMovil, 150);
+});
+
+btnLimpiar.addEventListener('click', () => {
+  inputBuscador.value = '';
+  inputBuscador.dispatchEvent(new Event('input'));
+  inputBuscador.focus();
+  actualizarBotonLimpiar();
+});
+
+inputBuscador.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    inputBuscador.value = '';
+    inputBuscador.dispatchEvent(new Event('input'));
+    actualizarBotonLimpiar();
+    if (esMovil()) {
+      inputBuscador.blur();
+      headerInner.classList.remove('buscando');
+    }
+  }
+});
+
+// Si el usuario redimensiona y pasa a PC, forzamos quitar el estado "buscando"
+window.addEventListener('resize', () => {
+  if (!esMovil()) {
+    headerInner.classList.remove('buscando');
+  }
+});
+
+/* =========================================================
+   BARRA DE PROGRESO DE SCROLL
+   ========================================================= */
+function actualizarProgresoScroll() {
+  const barra = document.getElementById('scroll-progress');
+  if (!barra) return;
+
+  const esPC = window.innerWidth > 960;
+  const main = document.querySelector('main');
+
+  let scrollTop, scrollHeight, clienteHeight;
+
+  if (esPC && main && main.scrollHeight > main.clientHeight) {
+    scrollTop = main.scrollTop;
+    scrollHeight = main.scrollHeight;
+    clienteHeight = main.clientHeight;
+  } else {
+    scrollTop = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+    scrollHeight = document.documentElement.scrollHeight;
+    clienteHeight = window.innerHeight;
+  }
+
+  const total = scrollHeight - clienteHeight;
+  const progreso = total > 0 ? (scrollTop / total) * 100 : 0;
+  barra.style.width = Math.min(100, Math.max(0, progreso)) + '%';
+}
+
+function activarScrollListener() {
+  const esPC = window.innerWidth > 960;
+  const main = document.querySelector('main');
+
+  window.removeEventListener('scroll', actualizarProgresoScroll);
+  if (main) main.removeEventListener('scroll', actualizarProgresoScroll);
+
+  if (esPC && main) {
+    main.addEventListener('scroll', actualizarProgresoScroll, { passive: true });
+  } else {
+    window.addEventListener('scroll', actualizarProgresoScroll, { passive: true });
+  }
+
+  actualizarProgresoScroll();
+}
+
+window.addEventListener('resize', () => {
+  activarScrollListener();
+  actualizarProgresoScroll();
+});
+
+const listaPostsObs = document.getElementById('lista-posts');
+if (listaPostsObs) {
+  const observerContenido = new MutationObserver(() => {
+    requestAnimationFrame(actualizarProgresoScroll);
+  });
+  observerContenido.observe(listaPostsObs, { childList: true });
+}
+
+/* =========================================================
+   SERVICE WORKER (PWA)
+   ========================================================= */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => console.log('✅ SW registrado:', reg.scope))
+      .catch((err) => console.warn('⚠️ SW error:', err));
+  });
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+async function init() {
+  await cargarConfig();   // 👈 PRIMERO carga las variables
+
+  renderApps();
+
+  const [afi, posts] = await Promise.all([cargarAfiliado(), cargarPosts()]);
+  afiliadoId = afi;
+  todosLosPosts = posts;
+  postsFiltrados = [...todosLosPosts];
+  renderHome();
+
+  activarScrollListener();
+  actualizarBotonLimpiar();
+
+  cargarCotizaciones();
+  cargarClima();
+  cargarNoticias();
+
+  setInterval(cargarCotizaciones, 5 * 60 * 1000);
+  setInterval(cargarClima, 30 * 60 * 1000);
+  setInterval(cargarNoticias, 20 * 60 * 1000);
+}
+init();
+</script>
+</body>
+</html>
