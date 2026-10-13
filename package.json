@@ -11,6 +11,6 @@
     "dotenv": "18.0.7"
   },
   "devDependencies": {
-    "wrangler": "4.0.0"
+    "wrangler": "4.20.0"
   }
 }
