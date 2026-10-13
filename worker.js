@@ -1,15 +1,15 @@
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
+export default { async fetch(request, env) { const url = new URL(request.url);
 
-    if (url.pathname === "/api/config") {
-      return Response.json({
-        SHEET_CSV_URL: env.SHEET_CSV_URL || "",
-        FIREBASE_URL: env.FIREBASE_URL || "",
-        NEWSDATA_API_KEY: env.NEWSDATA_API_KEY || ""
-      });
-    }
+if (url.pathname === "/api/config") {
+  return Response.json({
+    SHEET_CSV_URL: env.SHEET_CSV_URL || "",
+    FIREBASE_URL: env.FIREBASE_URL || "",
+    NEWSDATA_API_KEY: env.NEWSDATA_API_KEY || ""
+  });
+}
 
-    return env.ASSETS.fetch(request);
-  }
-};
+return new Response("API Diaria funcionando correctamente", {
+  status: 200,
+  headers: { "Content-Type": "text/plain; charset=utf-8" }
+});
+} };
