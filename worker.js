@@ -8,8 +8,5 @@ if (url.pathname === "/api/config") {
   });
 }
 
-return new Response("API Diaria funcionando correctamente", {
-  status: 200,
-  headers: { "Content-Type": "text/plain; charset=utf-8" }
-});
+return env.ASSETS.fetch(request);
 } };
