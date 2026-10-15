@@ -422,11 +422,24 @@
 
   /* ============ MÓVIL (≤ 640px) ============ */
   @media (max-width: 640px) {
-    body { padding-top: 38px; }
-    header {
-      padding: 25px;
-      top: 38px;
-    }
+    .footer-apps-inner {
+	  text-align: center;
+	}
+	.play-link {
+	  justify-content: center;
+	}
+  /* ============ CLIMA MINI (solo móvil) ============
+     Va en el flujo normal de la página, entre la barra de cotizaciones y el
+     header. Solo se ve al estar en el comienzo: al bajar se va con el scroll
+     (queda detrás de cotizaciones) y el header se pega debajo de la barra. */
+  .clima-mini { display: block; }
+  body { padding-top: 38px; }
+  header {
+    padding: 25px;
+    position: sticky;
+    top: 38px;
+    z-index: 100;
+  }
     .header-inner { gap: 10px; flex-wrap: nowrap; }
     header h1 { font-size: 19px; }
     .logo-icon { width: 34px; height: 34px; font-size: 17px; }
@@ -517,7 +530,6 @@
       font-size: 14px;
     }
 
-    .clima-mini { display: block; }
 
     .layout {
       grid-template-columns: 1fr;
@@ -575,16 +587,18 @@
     .post-card .extracto { font-size: 13px; }
     .post-card .leer-mas { font-size: 13px; }
 
-    .post-articulo { padding: 20px 16px; border-radius: 14px; }
-    .post-articulo h1 { font-size: 21px; line-height: 1.3; }
-    .post-articulo img.hero {
-      border-radius: 10px;
-      margin-bottom: 18px;
-      max-height: 220px;
-      object-fit: cover;
-    }
-    .post-contenido { font-size: 15px; line-height: 1.75; }
-    .post-contenido h2 { font-size: 18px; margin: 22px 0 10px; }
+    .post-articulo { padding: 16px 12px; border-radius: 14px; }
+	.post-articulo h1 { font-size: 20px; line-height: 1.25; margin-bottom: 10px; }
+	.post-meta { font-size: 11px; margin-bottom: 12px; }
+	.post-articulo img.hero {
+	  border-radius: 10px;
+	  margin: 0 0 10px 0; 
+	  max-height: 200px;
+	  object-fit: cover;
+	}
+	.post-contenido { font-size: 15px; line-height: 1.7; }
+	.post-contenido p { margin-bottom: 14px; }
+	.post-contenido h2 { font-size: 17px; margin: 18px 0 8px; }
     .post-meta { font-size: 11.5px; margin-bottom: 18px; }
 
     .keywords-bloque { padding: 14px; margin: 20px 0 6px; }
@@ -835,8 +849,15 @@
 
   /* VISTA POST */
   .post-vista { display: none; }
-  .post-vista.activo { display: block; padding-left: 2px; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: none; } }
+  .post-vista.activo {
+	  display: block;
+	  padding-left: 2px;
+	  animation: fadeInSimple 0.25s ease;
+	}
+	@keyframes fadeInSimple {
+	  from { opacity: 0; }
+	  to   { opacity: 1; }
+	}
 
   .post-articulo {
     background: white; border-radius: var(--radio);
@@ -844,12 +865,16 @@
     position: relative; overflow: hidden;
   }
   .post-articulo::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 100%; height: 4px;
-    background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja), var(--cyan));
-    background-size: 300% 100%;
-    animation: shimmer 4s linear infinite;
-  }
+	  content: '';
+	  position: absolute;
+	  top: 0; left: 0;
+	  width: 100%; height: 4px;
+	  background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja), var(--cyan));
+	  background-size: 300% 100%;
+	  animation: shimmer 4s linear infinite;
+	  will-change: background-position;
+	  pointer-events: none;
+	}
   .post-articulo h1 {
     font-size: 34px; line-height: 1.2; font-weight: 900;
     margin-bottom: 16px; letter-spacing: -0.8px;
@@ -866,7 +891,7 @@
   .post-meta::before { content: '📅'; }
   .post-articulo img.hero {
     width: 100%; height: auto; border-radius: 12px;
-    margin-bottom: 30px; max-height: 440px; object-fit: cover;
+    margin: 0 0 10px 0; max-height: 440px; object-fit: cover;
     box-shadow: 0 12px 32px rgba(124,58,237,0.2);
   }
   .post-contenido { font-size: 17px; line-height: 1.8; color: #2a2a2a; }
@@ -982,7 +1007,7 @@
     text-transform: uppercase; letter-spacing: 0.5px;
   }
 
-  .vacio { text-align: center; padding: 100px 20px; }
+  .vacio { text-align: center; padding: 50px 20px; }
   .vacio::before {
     content: '📭'; display: block; font-size: 76px;
     margin-bottom: 22px; opacity: 0.4;
@@ -1037,7 +1062,7 @@
     margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
   }
   .recom-titulo::before {
-    content: '⭐'; font-size: 20px;
+    font-size: 20px;
     -webkit-text-fill-color: initial;
     animation: iconFloat 3s ease-in-out infinite;
   }
@@ -1146,6 +1171,34 @@
     color: var(--texto-suave);
     letter-spacing: 0.4px;
   }
+  .loader-posts {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  justify-content: center;
+	  padding: 60px 20px;
+	  gap: 16px;
+	  animation: fadeIn 0.3s ease;
+	}
+	.loader-spinner {
+	  width: 48px;
+	  height: 48px;
+	  border: 4px solid var(--gris-medio);
+	  border-top-color: var(--violeta);
+	  border-right-color: var(--rosa);
+	  border-radius: 50%;
+	  animation: spin 0.8s linear infinite;
+	}
+	.loader-posts p {
+	  font-size: 14px;
+	  font-weight: 700;
+	  color: var(--texto-suave);
+	  letter-spacing: 0.5px;
+	}
+	@keyframes fadeIn {
+	  from { opacity: 0; }
+	  to { opacity: 1; }
+	}
 </style>
 </head>
 <body>
@@ -1162,25 +1215,25 @@
 
 <!-- ===== CLIMA MINI (solo móvil) ===== -->
 <div class="clima-mini" id="clima-mini">
-  <div class="clima-mini-inner">
-    <div class="clima-mini-left">
-      <div class="clima-mini-icon" id="clima-mini-icon">
-        <svg viewBox="0 0 64 64" width="22" height="22"><path d="M14 42a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#fff"/></svg>
+    <div class="clima-mini-inner">
+      <div class="clima-mini-left">
+        <div class="clima-mini-icon" id="clima-mini-icon">
+          <svg viewBox="0 0 64 64" width="22" height="22"><path d="M14 42a10 10 0 0 1 0-20 12 12 0 0 1 22-2 10 10 0 0 1 0 22z" fill="#fff"/></svg>
+        </div>
+        <div class="clima-mini-info">
+          <div class="clima-mini-ciudad" id="clima-mini-ciudad">📍 Detectando...</div>
+          <div class="clima-mini-desc" id="clima-mini-desc">Cargando clima</div>
+        </div>
       </div>
-      <div class="clima-mini-info">
-        <div class="clima-mini-ciudad" id="clima-mini-ciudad">📍 Detectando...</div>
-        <div class="clima-mini-desc" id="clima-mini-desc">Cargando clima</div>
-      </div>
-    </div>
-    <div class="clima-mini-right">
-      <div class="clima-mini-temp" id="clima-mini-temp">--°</div>
-      <div class="clima-mini-extra">
-        <span id="clima-mini-hum">--%</span>
-        <span id="clima-mini-viento">-- km/h</span>
+      <div class="clima-mini-right">
+        <div class="clima-mini-temp" id="clima-mini-temp">--°</div>
+        <div class="clima-mini-extra">
+          <span id="clima-mini-hum">--%</span>
+          <span id="clima-mini-viento">-- km/h</span>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 <!-- ===== HEADER ===== -->
 <header>
@@ -1209,7 +1262,12 @@
 
   <main>
     <section id="vista-home">
-      <div id="lista-posts" class="lista-posts"></div>
+      <div id="lista-posts" class="lista-posts">
+	  <div class="loader-posts" id="loader-posts">
+		<div class="loader-spinner"></div>
+		<p>Cargando artículos...</p>
+	  </div>
+	</div>
       <div id="paginacion" class="paginacion"></div>
     </section>
 
@@ -1241,7 +1299,7 @@
 <!-- ===== FOOTER APPS ===== -->
 <div class="footer-apps">
   <div class="footer-apps-inner">
-    <div class="recom-titulo">Apps recomendadas del desarrollador</div>
+    <div class="recom-titulo">⭐ Apps recomendadas del desarrollador</div>
     <div class="apps-carousel">
       <div class="apps-track" id="apps-track"></div>
     </div>
@@ -1615,6 +1673,10 @@ async function cargarNoticias() {
 function renderHome() {
   const lista = document.getElementById('lista-posts');
   const pag = document.getElementById('paginacion');
+  
+   // Quitar loader si existe
+  const loader = document.getElementById('loader-posts');
+  if (loader) loader.remove();
 
   if (postsFiltrados.length === 0) {
     lista.innerHTML = `<div class="vacio"><h3>Sin información por el momento</h3><p>Vuelve pronto para ver nuevos contenidos.</p></div>`;
@@ -1678,6 +1740,13 @@ function abrirPost(id) {
   const post = todosLosPosts.find(p => p.id === id);
   if (!post) return;
   postActual = post;
+  
+  if (headerInner) headerInner.classList.remove('buscando');
+  if (inputBuscador) {
+    inputBuscador.value = '';
+    inputBuscador.blur();
+	actualizarBotonLimpiar();
+  }
 
   document.getElementById('vista-home').style.display = 'none';
   document.getElementById('vista-post').classList.add('activo');
@@ -1751,6 +1820,7 @@ function volverHome() {
   document.getElementById('vista-post').classList.remove('activo');
   document.getElementById('vista-home').style.display = 'block';
   postActual = null;
+  
   if (inputBuscador) {
     inputBuscador.value = '';
     // Refrescar posts sin filtro
@@ -1759,6 +1829,9 @@ function volverHome() {
     renderHome();
     actualizarBotonLimpiar();
   }
+  
+  if (headerInner) headerInner.classList.remove('buscando');
+  
   const main = document.querySelector('main');
   if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1794,6 +1867,7 @@ function abrirBuscadorMovil() {
 
 function cerrarBuscadorMovil() {
   if (!esMovil()) return;
+  if (document.activeElement === inputBuscador) return; // sigue enfocado (ej. tocó la X): no cerrar
   if (inputBuscador.value.trim() === '') {
     headerInner.classList.remove('buscando');
   }
@@ -1824,6 +1898,10 @@ inputBuscador.addEventListener('blur', () => {
   // Pequeño delay para permitir el click en la X
   setTimeout(cerrarBuscadorMovil, 150);
 });
+
+// Tocar la X no le quita el foco al input: limpia el texto y el buscador
+// sigue abierto hasta que se toque por fuera.
+btnLimpiar.addEventListener('mousedown', (e) => e.preventDefault());
 
 btnLimpiar.addEventListener('click', () => {
   inputBuscador.value = '';
@@ -1881,7 +1959,7 @@ function actualizarProgresoScroll() {
 function activarScrollListener() {
   const esPC = window.innerWidth > 960;
   const main = document.querySelector('main');
-
+  
   window.removeEventListener('scroll', actualizarProgresoScroll);
   if (main) main.removeEventListener('scroll', actualizarProgresoScroll);
 
@@ -1922,8 +2000,7 @@ if ('serviceWorker' in navigator) {
    INIT
    ========================================================= */
 async function init() {
-  await cargarConfig();   // 👈 PRIMERO carga las variables
-
+  await cargarConfig(); 
   renderApps();
 
   const [afi, posts] = await Promise.all([cargarAfiliado(), cargarPosts()]);
