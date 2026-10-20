@@ -1,7 +1,8 @@
 # DiarIA - Inteligencia diaria para tu vida
 
 Blog con IA que reúne artículos, clima, noticias, cotizaciones y productos recomendados en una sola página.  
-*Instalable como PWA.*
+
+> **Nota:** Instalable como PWA.
 
 ---
 
@@ -21,7 +22,7 @@ Blog con IA que reúne artículos, clima, noticias, cotizaciones y productos rec
 
 - **Frontend:** HTML, CSS, JavaScript (Vanilla)
 - **CMS / Base de Datos:** Google Sheets, Firebase
-- **APIs:** `wttr.in`, `bluelytics`, `newsdata.io`, `ipapi.co`
+- **APIs:** `wttr.in`, `bluelytics`, `freenewsapi.ai`, `ipapi.co`
 - **Hosting / Deployment:** Cloudflare Pages
 
 ---
@@ -47,7 +48,6 @@ Crea un archivo `.dev.vars` en la raíz del proyecto:
 ```env
 SHEET_CSV_URL=...
 FIREBASE_URL=...
-NEWSDATA_API_KEY=...
 ```
 
 > **En Producción:** Configura estas variables en **Cloudflare → Settings → Environment variables**.

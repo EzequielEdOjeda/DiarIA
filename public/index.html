@@ -359,10 +359,6 @@
     }
   }
 
-  @media (min-width: 961px) {
-    .clima-extra { padding-bottom: 40px; }
-  }
-
   /* ============ TABLET (641px - 960px) ============ */
   @media (min-width: 641px) and (max-width: 960px) {
     body { padding-top: 36px; }
@@ -401,6 +397,10 @@
 
     aside.sidebar { height: 250px; }
     #widget-noticias .news-carousel { height: 150px; }
+	
+	.clima-extra {
+      padding-bottom: 10px;
+    }
 
     main {
       max-height: none;
@@ -703,8 +703,7 @@
   }
   .clima-extra {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
-    padding-top: 10px; border-top: 1px solid var(--gris-medio);
-    margin-bottom: 20px;
+    padding-top: 20px; border-top: 1px solid var(--gris-medio);
   }
   .clima-extra > div {
     text-align: center;
@@ -741,7 +740,8 @@
     display: flex; gap: 10px; padding: 10px;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--gris-claro), #f0f4ff);
-    cursor: default; user-select: none;
+    cursor: pointer; 
+	text-decoration: none; color: inherit;
     transition: all 0.3s;
     border-left: 3px solid transparent;
     flex-shrink: 0;
@@ -1199,10 +1199,122 @@
 	  from { opacity: 0; }
 	  to { opacity: 1; }
 	}
+	/* ============ SPLASH / PRELOADER GLOBAL ============ */
+#splash-global {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #ff9900 100%);
+  background-size: 200% 200%;
+  animation: splashGradient 6s ease infinite;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+#splash-global.oculto {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@keyframes splashGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+.splash-rayo {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.splash-rayo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.45) 0%, transparent 70%);
+  animation: splashHalo 1.6s ease-in-out infinite;
+}
+
+.splash-rayo::after {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  border: 2px solid rgba(251, 191, 36, 0.25);
+  animation: splashRing 2.4s ease-out infinite;
+}
+
+.splash-rayo svg {
+  width: 78px;
+  height: 78px;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 14px rgba(251, 191, 36, 0.9))
+          drop-shadow(0 0 30px rgba(251, 191, 36, 0.5));
+  animation: splashRayo 1.2s ease-in-out infinite;
+}
+
+@keyframes splashHalo {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50%      { transform: scale(1.35); opacity: 1; }
+}
+
+@keyframes splashRing {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes splashRayo {
+  0%, 100% { transform: scale(1) rotate(-5deg); opacity: 0.9; }
+  50%      { transform: scale(1.18) rotate(5deg); opacity: 1; }
+}
+
+.splash-texto {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  animation: splashTexto 1.8s ease-in-out infinite;
+}
+
+@keyframes splashTexto {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.85; }
+}
+
+/* El body arranca bloqueado hasta que el splash desaparezca */
+body.splash-activo {
+  overflow: hidden;
+}
+  @media (min-width: 961px) {
+    .clima-extra { 
+      padding-bottom: 30%; 
+      margin-bottom: 5px; 
+    }
+  }
+
 </style>
 </head>
 <body>
-
+<!-- ===== SPLASH GLOBAL (rayo animado) ===== -->
+<div id="splash-global">
+  <div class="splash-rayo">
+    <svg viewBox="0 0 24 24" fill="#fbbf24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13 2L4.09 12.69c-.36.42-.05 1.06.5 1.06H10l-1 8.25 8.91-10.69c.36-.42.05-1.06-.5-1.06H13l1-8.25z"/>
+    </svg>
+  </div>
+  <div class="splash-texto">Cargando...</div>
+</div>
 <!-- ===== BARRA COTIZACIONES ===== -->
 <div class="scrolling-bar">
   <div class="data-content" id="data-content">
@@ -1321,7 +1433,6 @@
    ========================================================= */
 let SHEET_CSV_URL = '';
 let FIREBASE_URL = '';
-let NEWSDATA_API_KEY = '';
 
 const FREE_SHIPPING = 'p_n_free_shipping_eligible:20930980031';
 const POSTS_POR_PAGINA = 5;
@@ -1333,13 +1444,11 @@ async function cargarConfig() {
     const cfg = await res.json();
     SHEET_CSV_URL    = cfg.SHEET_CSV_URL    || '';
     FIREBASE_URL     = cfg.FIREBASE_URL     || '';
-    NEWSDATA_API_KEY = cfg.NEWSDATA_API_KEY || '';
   } catch (e) {
     console.error('Error cargando configuración:', e);
     // Fallback opcional en desarrollo local
     SHEET_CSV_URL    = window.__FALLBACK_SHEET__    || '';
     FIREBASE_URL     = window.__FALLBACK_FIREBASE__ || '';
-    NEWSDATA_API_KEY = window.__FALLBACK_NEWS__     || '';
   }
 }
 
@@ -1634,25 +1743,43 @@ async function cargarClima() {
 async function cargarNoticias() {
   const cont = document.getElementById('noticias-contenido');
   try {
-    const url = `https://newsdata.io/api/1/latest?apikey=${NEWSDATA_API_KEY}&language=es&category=top&size=6`;
-    const res = await fetch(url);
-    const data = await res.json();
+    // 1. Usamos freenewsapi.ai con filtro de tecnología
+    const apiUrl = `https://freenewsapi.ai/v1/search?topic=technology&lang=es&size=8`;
+    
+    // 2. Proxy para evitar CORS
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
 
-    if (data.status === 'error' || !data.results || !data.results.length) {
-      cont.innerHTML = '<div class="widget-loading">Sin noticias por el momento</div>';
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+    
+    const json = await res.json();
+    const noticias = json.results || [];
+
+    if (!noticias.length) {
+      cont.innerHTML = '<div class="widget-loading">Sin noticias de tecnología por el momento</div>';
       return;
     }
 
-    const items = data.results.map(n => `
-      <div class="noticia-item">
-        <img src="${n.image_url || 'https://via.placeholder.com/52x52/f0f0f0/999?text=N'}"
-             alt="" loading="lazy"
-             onerror="this.src='https://via.placeholder.com/52x52/f0f0f0/999?text=N'">
+    const items = noticias.map(n => {
+      const titulo = n.title || 'Sin título';
+      
+      // 3. SOLUCIÓN A LA IMAGEN Y FUENTE
+      // El campo real es "image" y "sitename" según tu captura
+      const imagen = n.image || 'https://via.placeholder.com/52x52/f0f0f0/999?text=IT';
+      const fuente = n.sitename || n.host || 'Fuente'; 
+      const fecha = n.published_at || '';
+      const enlace = n.url || '#';
+	   
+      return `
+      <a href="${enlace}" target="_blank" rel="noopener noreferrer" class="noticia-item" style="text-decoration: none; color: inherit;">
+        <img src="${imagen}" alt="" loading="lazy"
+             onerror="this.src='https://via.placeholder.com/52x52/f0f0f0/999?text=IT'">
         <div class="noticia-info">
-          <div class="noticia-titulo">${(n.title || '').substring(0, 90)}</div>
-          <div class="noticia-fuente">${n.source_name || 'Fuente'} · ${formatoFechaNoticia(n.pubDate)}</div>
+          <div class="noticia-titulo">${titulo.substring(0, 90)}</div>
+          <div class="noticia-fuente">${fuente} · ${formatoFechaNoticia(fecha)}</div>
         </div>
-      </div>`).join('');
+      </a>`;
+    }).join('');
 
     cont.innerHTML = `
       <div class="news-carousel">
@@ -1736,6 +1863,16 @@ function resaltarKeywords(html, keywords) {
   return r;
 }
 
+/* Mezcla aleatoria (Fisher-Yates) sin repetición */
+function mezclarArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function abrirPost(id) {
   const post = todosLosPosts.find(p => p.id === id);
   if (!post) return;
@@ -1775,30 +1912,33 @@ function abrirPost(id) {
       <div class="keywords">${keywordsHTML}</div>
     </div>`;
 
-  let cantidadSugeridos = 6;
+    let cantidadSugeridos = 6;
   if (window.innerWidth <= 640) {
     cantidadSugeridos = 3;
   } else if (window.innerWidth <= 960) {
     cantidadSugeridos = 4;
   }
 
-  const sugeridos = todosLosPosts
-    .filter(p => p.id !== post.id)
+  // 1) Candidatos (todos menos el actual)
+  const candidatos = todosLosPosts.filter(p => p.id !== post.id);
+
+  // 2) Relacionados por keywords (con su puntaje)
+  const relacionados = candidatos
     .map(p => ({
       post: p,
       coincidencias: p.keywords.filter(k => post.keywords.includes(k)).length
     }))
     .filter(s => s.coincidencias > 0)
     .sort((a, b) => b.coincidencias - a.coincidencias)
-    .slice(0, cantidadSugeridos)
     .map(s => s.post);
 
-  if (sugeridos.length === 0) {
-    sugeridos.push(...todosLosPosts
-      .filter(p => p.id !== post.id)
-      .slice(0, cantidadSugeridos)
-    );
-  }
+  // 3) Resto de candidatos (sin los ya elegidos) mezclados aleatoriamente
+  const idsRelacionados = new Set(relacionados.map(p => p.id));
+  const resto = candidatos.filter(p => !idsRelacionados.has(p.id));
+  const restoMezclado = mezclarArray(resto);
+
+  // 4) Unir: primero relacionados, luego relleno aleatorio hasta llegar a la cantidad
+  const sugeridos = [...relacionados, ...restoMezclado].slice(0, cantidadSugeridos);
 
   document.getElementById('sugeridos').innerHTML = sugeridos.map(p => `
     <div class="sugerido-card" onclick="abrirPost(${p.id})">
@@ -1997,6 +2137,46 @@ if ('serviceWorker' in navigator) {
 }
 
 /* =========================================================
+   SPLASH GLOBAL
+   ========================================================= */
+let splashOculto = false;
+
+function ocultarSplash() {
+  if (splashOculto) return;
+  splashOculto = true;
+
+  const splash = document.getElementById('splash-global');
+  const body = document.body;
+
+  // Pequeño delay para que se aprecie la animación aunque cargue rápido
+  const MIN_VISIBLE = 900; // ms
+  const inicio = window.__splashStart || Date.now();
+  const transcurrido = Date.now() - inicio;
+  const espera = Math.max(0, MIN_VISIBLE - transcurrido);
+
+  setTimeout(() => {
+    if (splash) splash.classList.add('oculto');
+    body.classList.remove('splash-activo');
+
+    // Elimina el splash del DOM después de la transición
+    setTimeout(() => {
+      if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+    }, 700);
+  }, espera);
+}
+
+// Guarda el momento en que se mostró el splash
+window.__splashStart = Date.now();
+
+// Failsafe: si algo falla (ej. sin conexión), no dejar al usuario atrapado
+setTimeout(() => {
+  if (!splashOculto) {
+    console.warn('⚠️ Splash ocultado por timeout de seguridad');
+    ocultarSplash();
+  }
+}, 12000); // máximo 12s
+
+/* =========================================================
    INIT
    ========================================================= */
 async function init() {
@@ -2008,6 +2188,7 @@ async function init() {
   todosLosPosts = posts;
   postsFiltrados = [...todosLosPosts];
   renderHome();
+  ocultarSplash();
 
   activarScrollListener();
   actualizarBotonLimpiar();
