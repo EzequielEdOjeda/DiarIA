@@ -324,16 +324,14 @@
   main { margin: 0; min-width: 0; }
 
   aside.sidebar {
-    position: sticky;
-    padding-top: 5px;
-    top: 130px;
-    display: flex; flex-direction: column; gap: 20px;
-    max-height: calc(100vh - 150px);
-    overflow-y: auto;
-    padding-right: 6px;
-    padding-bottom: 20px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--violeta) transparent;
+	  position: sticky;
+	  padding-top: 5px;
+	  top: 130px;
+	  display: flex;
+	  flex-direction: column;
+	  gap: 20px;
+	  padding-right: 6px;
+	  padding-bottom: 20px;
   }
   aside.sidebar::-webkit-scrollbar { width: 6px; }
   aside.sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -344,20 +342,36 @@
   aside.sidebar .widget:last-child { margin-bottom: 8px; }
 
   @media (min-width: 961px) {
-    main {
-      max-height: calc(100vh - 150px);
-      overflow-y: auto;
-      padding-right: 6px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--violeta) transparent;
-    }
-    main::-webkit-scrollbar { width: 6px; }
-    main::-webkit-scrollbar-track { background: transparent; }
-    main::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, var(--violeta), var(--rosa));
-      border-radius: 3px;
-    }
+  main {
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--violeta) transparent;
   }
+  main::-webkit-scrollbar { width: 6px; }
+  main::-webkit-scrollbar-track { background: transparent; }
+  main::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--violeta), var(--rosa));
+    border-radius: 3px;
+  }
+  
+  aside.sidebar {
+    position: sticky;
+    top: 130px;
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px;
+    padding-right: 6px;
+    padding-bottom: 20px;
+  }
+  
+  .clima-ciudad {
+    white-space: normal; 
+    word-break: break-word;
+    line-height: 1.2;
+  }
+}
 
   /* ============ TABLET (641px - 960px) ============ */
   @media (min-width: 641px) and (max-width: 960px) {
@@ -396,11 +410,7 @@
     }
 
     aside.sidebar { height: 250px; }
-    #widget-noticias .news-carousel { height: 150px; }
-	
-	.clima-extra {
-      padding-bottom: 10px;
-    }
+    #widget-noticias .news-carousel { height: 150px; }	
 
     main {
       max-height: none;
@@ -637,6 +647,7 @@
     position: relative;
     overflow: hidden;
     animation: fadeInUp 0.6s ease backwards;
+	background-clip: padding-box; 
   }
   .widget:nth-child(1) { animation-delay: 0.1s; }
   .widget:nth-child(2) { animation-delay: 0.2s; }
@@ -645,17 +656,23 @@
     to { opacity: 1; transform: none; }
   }
   .widget::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 100%; height: 3px;
-    background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja), var(--violeta));
-    background-size: 300% 100%;
-    animation: shimmer 3s linear infinite;
-  }
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--violeta), var(--rosa), var(--naranja), var(--violeta));
+  background-size: 300% 100%;
+  animation: shimmer 3s linear infinite;
+  border-radius: var(--radio) var(--radio) 0 0; 
+  z-index: 1;
+}
   @keyframes shimmer {
     0% { background-position: 0% 0; }
     100% { background-position: 300% 0; }
   }
-  .widget:hover { transform: translateY(-4px); box-shadow: var(--sombra-hover); }
+  .widget:hover { box-shadow: var(--sombra-hover); }
   .widget-title {
     font-size: 13px; font-weight: 800; text-transform: uppercase;
     letter-spacing: 0.7px;
@@ -689,7 +706,6 @@
   .clima-info { flex: 1; min-width: 0; }
   .clima-ciudad {
     font-size: 14px; font-weight: 800; color: var(--texto);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     margin-bottom: 2px;
   }
   .clima-desc { font-size: 13px; color: var(--texto-suave); font-weight: 600; }
@@ -721,14 +737,18 @@
 
   /* ============ NOTICIAS CARRUSEL VERTICAL ============ */
   .news-carousel {
-    height: 280px;
+    height: 240px;
     overflow: hidden;
     position: relative;
     border-radius: 12px;
     background: linear-gradient(180deg, transparent 0%, transparent 85%, rgba(255,255,255,0.9) 100%);
+	mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
   }
   .news-track {
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
     animation: scrollUp 24s linear infinite;
   }
   .news-carousel:hover .news-track { animation-play-state: paused; }
@@ -1296,11 +1316,6 @@
 body.splash-activo {
   overflow: hidden;
 }
-  @media (min-width: 961px) {
-    .clima-extra { 
-      margin-bottom: 5px; 
-    }
-  }
 
 </style>
 </head>
@@ -1312,7 +1327,6 @@ body.splash-activo {
       <path d="M13 2L4.09 12.69c-.36.42-.05 1.06.5 1.06H10l-1 8.25 8.91-10.69c.36-.42.05-1.06-.5-1.06H13l1-8.25z"/>
     </svg>
   </div>
-  <div class="splash-texto">Cargando...</div>
 </div>
 <!-- ===== BARRA COTIZACIONES ===== -->
 <div class="scrolling-bar">
@@ -1742,13 +1756,18 @@ async function cargarClima() {
 async function cargarNoticias() {
   const cont = document.getElementById('noticias-contenido');
   try {
-    // 1. Usamos freenewsapi.ai con filtro de tecnología
     const apiUrl = `https://freenewsapi.ai/v1/search?topic=technology&lang=es&size=8`;
     
-    // 2. Proxy para evitar CORS
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-
-    const res = await fetch(proxyUrl);
+    // Usamos un proxy más estable (corsproxy.io) y un fallback (allorigins)
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+    let res = await fetch(proxyUrl);
+    
+    // Si el primer proxy falla, intentamos con el segundo
+    if (!res.ok) {
+      const fallbackProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+      res = await fetch(fallbackProxy);
+    }
+    
     if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
     
     const json = await res.json();
@@ -1761,18 +1780,15 @@ async function cargarNoticias() {
 
     const items = noticias.map(n => {
       const titulo = n.title || 'Sin título';
-      
-      // 3. SOLUCIÓN A LA IMAGEN Y FUENTE
-      // El campo real es "image" y "sitename" según tu captura
-      const imagen = n.image || 'https://via.placeholder.com/52x52/f0f0f0/999?text=IT';
-      const fuente = n.sitename || n.host || 'Fuente'; 
+      // Validamos que la imagen exista y no esté vacía
+      const imagen = (n.image && n.image.startsWith('http')) ? n.image : 'https://via.placeholder.com/52x52/f0f0f0/999?text=IT';
+      const fuente = n.sitename || n.host || 'Fuente';
       const fecha = n.published_at || '';
       const enlace = n.url || '#';
-	   
+       
       return `
       <a href="${enlace}" target="_blank" rel="noopener noreferrer" class="noticia-item" style="text-decoration: none; color: inherit;">
-        <img src="${imagen}" alt="" loading="lazy"
-             onerror="this.src='https://via.placeholder.com/52x52/f0f0f0/999?text=IT'">
+        <img src="${imagen}" alt="" loading="lazy" onerror="this.src='https://via.placeholder.com/52x52/f0f0f0/999?text=IT'">
         <div class="noticia-info">
           <div class="noticia-titulo">${titulo.substring(0, 90)}</div>
           <div class="noticia-fuente">${fuente} · ${formatoFechaNoticia(fecha)}</div>
@@ -1784,7 +1800,7 @@ async function cargarNoticias() {
       <div class="news-carousel">
         <div class="news-track">
           ${items}
-          ${items}
+          ${items} <!-- Duplicado para el efecto infinito -->
         </div>
       </div>`;
   } catch (e) {
